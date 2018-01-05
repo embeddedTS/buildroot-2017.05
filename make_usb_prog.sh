@@ -1,6 +1,7 @@
 #!/bin/bash -x
 
 DEV=$1
+MODEL=$2
 
 if [ ! -b "$DEV" ]; then
 	echo "Usage: $0 /dev/firstpartitionofusb"
@@ -14,7 +15,8 @@ if [ "$?" = "0" ]; then
 	exit
 fi
 
-mkfs.vfat $DEV
+#mkfs.vfat $DEV
+mkfs.ext2 -F $DEV
 if [ $? != 0 ]; then
 	echo "mkfs failed"
 	exit 1;
@@ -32,9 +34,9 @@ fi
 mkdir ${TEMPDIR}/boot/
 cp output/images/rootfs.cpio.uboot ${TEMPDIR}/boot/
 cp output/images/*.dtb ${TEMPDIR}/boot/
-cp output/images/uImage ${TEMPDIR}/boot/
-cp blast.sh ${TEMPDIR}/
-cp tsinit.scr ${TEMPDIR}/
-mkimage -T script -C none -A arm -n 'usb boot' -d tsinit.scr ${TEMPDIR}/tsinit.ub
+cp output/images/*Image ${TEMPDIR}/boot/
+cp blast${MODEL}.sh ${TEMPDIR}/blast.sh
+cp tsinit${MODEL}.scr ${TEMPDIR}/tsinit.scr
+mkimage -T script -C none -A arm -n 'usb boot' -d tsinit${MODEL}.scr ${TEMPDIR}/tsinit.ub
 umount ${TEMPDIR}
 sync

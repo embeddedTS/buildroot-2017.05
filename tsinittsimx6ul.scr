@@ -1,0 +1,14 @@
+# Prepare with:
+# mkimage -T script -C none -A arm -n 'usb boot' -d tsinit.scr tsinit.ub
+
+env set fdtaddr 0x81000000;
+env set ramdiskaddr 0x83000000;
+
+if test $model -eq '7553'; then
+	load usb 0:1 ${fdtaddr} /boot/imx6ul-ts7553v2${pcbrev}.dtb;
+	setenv bootargs ${cmdline_append}
+fi;
+
+load usb 0:1 ${loadaddr} /boot/zImage;
+load usb 0:1 ${ramdiskaddr} /boot/rootfs.cpio.uboot;
+bootz ${loadaddr} ${ramdiskaddr} ${fdtaddr};
