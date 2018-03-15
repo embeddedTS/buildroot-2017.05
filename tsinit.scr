@@ -29,8 +29,8 @@ if test  $model -eq '4900'; then
 	if load usb 0:1 ${fdtaddr} /boot/imx6${cpu}-ts4900-${baseboardid}.dtb; then
 		echo "Loaded ${baseboardid} dtb";
 	else
-		load usb 0:1 ${fdtaddr} /boot/imx6${cpu}-ts4900-${baseboardid}.dtb;
-		echo "Loaded ${baseboardid} dtb";
+		load usb 0:1 ${fdtaddr} /boot/imx6${cpu}-ts4900.dtb;
+		echo "Loaded fallback dtb";
 	fi;
 fi;
 
