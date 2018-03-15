@@ -37,6 +37,7 @@ cp output/images/*.dtb ${TEMPDIR}/boot/
 cp output/images/*Image ${TEMPDIR}/boot/
 cp blast${MODEL}.sh ${TEMPDIR}/blast.sh
 cp tsinit${MODEL}.scr ${TEMPDIR}/tsinit.scr
+chmod a+x ${TEMPDIR}/blast.sh
 mkimage -T script -C none -A arm -n 'usb boot' -d tsinit${MODEL}.scr ${TEMPDIR}/tsinit.ub
 umount ${TEMPDIR}
 sync
