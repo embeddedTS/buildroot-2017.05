@@ -140,6 +140,22 @@ elif [ -e /mnt/usb/emmcimage.dd.bz2 ]; then
 	) > /tmp/logs/emmc-writeimage 2>&1 &
 fi
 
+if [ -e /mnt/usb/u-boot.imx ]; then
+	echo "==========Writing new U-boot image =========="
+	(
+	echo 0 > /sys/block/mmcblk1boot0/force_ro
+	dd bs=512 seek=2 if=/mnt/usb/u-boot.imx of=/dev/mmcblk1boot0
+	if [ -e /mnt/usb/u-boot.imx.md5 ]; then
+		BYTES="$(cat /mnt/usb/u-boot.imx  | wc -c)"
+		EXPECTED="$(cat /mnt/usb/u-boot.imx.md5 | cut -f 1 -d ' ')"
+		ACTUAL=$(dd if=/dev/mmcblk1boot0 bs=4M | dd skip=2 bs=512 | dd bs=1 count=$BYTES | md5sum | cut -f 1 -d ' ')
+		if [ "$ACTUAL" != "$EXPECTED" ]; then
+			echo "mmcblk1boot0 dd verify" >> /tmp/failed
+		fi
+	fi
+	) > /tmp/logs/u-boot-writeimage 2>&1 &
+fi
+
 sync
 wait
 
