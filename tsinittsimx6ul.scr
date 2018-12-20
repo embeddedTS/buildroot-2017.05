@@ -8,8 +8,8 @@ if test $model -eq '7553'; then
 	load usb 0:1 ${fdtaddr} /boot/imx6ul-ts7553v2${pcbrev}.dtb;
 elif test $model -eq '4100'; then
 	load usb 0:1 ${fdtaddr} /boot/imx6ul-ts4100.dtb;
-elif test $model -eq '7810'; then
-	load usb 0:1 ${fdtaddr} /boot/imx6ul-ts7810.dtb;
+elif test $model -eq '7180'; then
+	load usb 0:1 ${fdtaddr} /boot/imx6ul-ts7180.dtb;
 fi
 
 setenv bootargs ${cmdline_append};
