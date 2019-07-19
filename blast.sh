@@ -173,7 +173,7 @@ EOF
 				if [ $? != 0 ]; then
 					echo "mount sda1" >> /tmp/failed
 				fi
-				bzcat /mnt/usb/sataimage.tar.bz2 | tar -x -C /mnt/emmc
+				bzcat /mnt/usb/sataimage.tar.bz2 | tar -x -C /mnt/sata
 				if [ $? != 0 ]; then
 					echo "tar sda1" >> /tmp/failed
 				fi
