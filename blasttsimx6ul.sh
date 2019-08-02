@@ -7,7 +7,7 @@ mkdir /tmp/logs
 echo 0 > /sys/class/leds/green-led/brightness
 echo 1 > /sys/class/leds/red-led/brightness
 ### MicroSD ###
-if [ -e /mnt/usb/sdimage.tar.bz2 -o -e /mnt/usb/sdimage.tar.xz ]; then
+if [ -e /mnt/usb/sdimage.tar.bz2 ] || [ -e /mnt/usb/sdimage.tar.xz ] ; then
 	echo "======= Writing SD card filesystem ========"
 
 	(
@@ -50,7 +50,7 @@ EOF
 
 		if [ -e "/mnt/sd/md5sums.txt" ]; then
 			LINES=$(wc -l /mnt/sd/md5sums.txt  | cut -f 1 -d ' ')
-			if [ $LINES = 0 ]; then
+			if [ "${LINES}" = 0 ]; then
 				echo "==========MD5sum file blank==========="
 				echo "mmcblk0 md5sum file is blank" >> /tmp/failed
 			fi
@@ -67,7 +67,7 @@ EOF
 
 		umount /mnt/sd/
 	) > /tmp/logs/sd-writefs 2>&1 &
-elif [ -e /mnt/usb/sdimage.dd.bz2 -o -e /mnt/usb/sdimage.dd.xz ]; then
+elif [ -e /mnt/usb/sdimage.dd.bz2 ] || [ -e /mnt/usb/sdimage.dd.xz ]; then
 	echo "======= Writing SD card disk image ========"
 	(
 		if [ -e /mnt/usb/sdimage.dd.bz2 ] ; then
@@ -79,8 +79,8 @@ elif [ -e /mnt/usb/sdimage.dd.bz2 -o -e /mnt/usb/sdimage.dd.xz ]; then
 		fi
 
 		if [ -e /mnt/usb/sdimage.dd.md5 ]; then
-			EXPECTED="$(cat /mnt/usb/sdimage.dd.md5 | cut -f 1 -d ' ')"
-			ACTUAL=$(dd if=/dev/mmcblk0 bs=4M | dd bs=1 count=$BYTES | md5sum)
+			EXPECTED=$(cut -f 1 -d ' ' /mnt/usb/sdimage.dd.md5)
+			ACTUAL=$(dd if=/dev/mmcblk0 bs=4M | dd bs=1 count="${BYTES}" | md5sum)
 			if [ "$ACTUAL" != "$EXPECTED" ]; then
 				echo "mmcblk0 dd verify" >> /tmp/failed
 			fi
@@ -89,7 +89,7 @@ elif [ -e /mnt/usb/sdimage.dd.bz2 -o -e /mnt/usb/sdimage.dd.xz ]; then
 fi
 
 ### EMMC ###
-if [ -e /mnt/usb/emmcimage.tar.bz2 -o -e /mnt/usb/emmcimage.tar.xz ]; then
+if [ -e /mnt/usb/emmcimage.tar.bz2 ] || [ -e /mnt/usb/emmcimage.tar.xz ]; then
 	echo "======= Writing eMMC card filesystem ========"
 	(
 
@@ -131,7 +131,7 @@ EOF
 
 		if [ -e "/mnt/emmc/md5sums.txt" ]; then
 			LINES=$(wc -l /mnt/emmc/md5sums.txt  | cut -f 1 -d ' ')
-			if [ $LINES = 0 ]; then
+			if [ "${LINES}" = 0 ]; then
 				echo "==========MD5sum file blank==========="
 				echo "mmcblk1 md5sum file is blank" >> /tmp/failed
 			fi
@@ -147,20 +147,20 @@ EOF
 
 		umount /mnt/emmc/
 	) > /tmp/logs/emmc-writefs 2>&1 &
-elif [ -e /mnt/usb/emmcimage.dd.bz2 -o -e /mnt/usb/emmcimage.dd.xz ]; then
+elif [ -e /mnt/usb/emmcimage.dd.bz2 ] || [ -e /mnt/usb/emmcimage.dd.xz ]; then
 	echo "======= Writing eMMC disk image ========"
 	(
 		if [ -e /mnt/usb/emmcimage.dd.bz2 ] ; then
 		  bzcat /mnt/usb/emmcimage.dd.bz2 | dd bs=4M of=/dev/mmcblk1
-		  BYTES="$(bzcat /mnt/usb/emmcimage.dd.bz2  | wc -c)"
+		  BYTES=$(bzcat /mnt/usb/emmcimage.dd.bz2  | wc -c)
 		else
 		  xzcat /mnt/usb/emmcimage.dd.xz | dd bs=4M of=/dev/mmcblk1
-		  BYTES="$(xzcat /mnt/usb/emmcimage.dd.xz  | wc -c)"
+		  BYTES=$(xzcat /mnt/usb/emmcimage.dd.xz  | wc -c)
 		fi
 
 		if [ -e /mnt/usb/emmcimage.dd.md5 ]; then
-			EXPECTED="$(cat /mnt/usb/emmcimage.dd.md5 | cut -f 1 -d ' ')"
-			ACTUAL=$(dd if=/dev/mmcblk1 bs=4M | dd bs=1 count=$BYTES | md5sum)
+			EXPECTED=$(cut -f 1 -d ' ' /mnt/usb/emmcimage.dd.md5)
+			ACTUAL=$(dd if=/dev/mmcblk1 bs=4M | dd bs=1 count="${BYTES}" | md5sum)
 			if [ "$ACTUAL" != "$EXPECTED" ]; then
 				echo "mmcblk1 dd verify" >> /tmp/failed
 			fi
@@ -174,10 +174,10 @@ if [ -e /mnt/usb/u-boot.imx ]; then
 	echo 0 > /sys/block/mmcblk1boot0/force_ro
 	dd bs=512 seek=2 if=/mnt/usb/u-boot.imx of=/dev/mmcblk1boot0
 	if [ -e /mnt/usb/u-boot.imx.md5 ]; then
-		BYTES="$(cat /mnt/usb/u-boot.imx  | wc -c)"
-		EXPECTED="$(cat /mnt/usb/u-boot.imx.md5 | cut -f 1 -d ' ')"
-		ACTUAL=$(dd if=/dev/mmcblk1boot0 bs=4M | dd skip=2 bs=512 | dd bs=1 count=$BYTES | md5sum | cut -f 1 -d ' ')
-		if [ "$ACTUAL" != "$EXPECTED" ]; then
+		BYTES=$(wc -c /mnt/usb/u-boot.imx)
+		EXPECTED=$(cut -f 1 -d ' ' /mnt/usb/u-boot.imx.md5)
+		ACTUAL=$(dd if=/dev/mmcblk1boot0 bs=4M | dd skip=2 bs=512 | dd bs=1 count="${BYTES}" | md5sum | cut -f 1 -d ' ')
+		if [ "${ACTUAL}" != "${EXPECTED}" ]; then
 			echo "mmcblk1boot0 dd verify" >> /tmp/failed
 		fi
 	fi
