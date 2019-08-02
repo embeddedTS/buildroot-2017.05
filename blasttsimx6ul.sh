@@ -7,7 +7,7 @@ mkdir /tmp/logs
 echo 0 > /sys/class/leds/green-led/brightness
 echo 1 > /sys/class/leds/red-led/brightness
 ### MicroSD ###
-if [ -e /mnt/usb/sdimage.tar.bz2 ]; then
+if [ -e /mnt/usb/sdimage.tar.bz2 -o -e /mnt/usb/sdimage.tar.xz ]; then
 	echo "======= Writing SD card filesystem ========"
 
 	(
@@ -34,9 +34,17 @@ EOF
 		if [ $? != 0 ]; then
 			echo "mount mmcblk0" >> /tmp/failed
 		fi
-		bzcat /mnt/usb/sdimage.tar.bz2 | tar -x -C /mnt/sd
-		if [ $? != 0 ]; then
-			echo "tar mmcblk0" >> /tmp/failed
+
+		if [ -e /mnt/usb/sdimage.tar.bz2 ] ; then
+			bzcat /mnt/usb/sdimage.tar.bz2 | tar -x -C /mnt/sd
+			if [ $? != 0 ]; then
+				echo "tar mmcblk0" >> /tmp/failed
+			fi
+		else # It is an xz image
+			xzcat /mnt/usb/sdimage.tar.xz | tar -x -C /mnt/sd
+			if [ $? != 0 ]; then
+				echo "tar mmcblk0" >> /tmp/failed
+			fi
 		fi
 		sync
 
@@ -59,12 +67,18 @@ EOF
 
 		umount /mnt/sd/
 	) > /tmp/logs/sd-writefs 2>&1 &
-elif [ -e /mnt/usb/sdimage.dd.bz2 ]; then
+elif [ -e /mnt/usb/sdimage.dd.bz2 -o -e /mnt/usb/sdimage.dd.xz ]; then
 	echo "======= Writing SD card disk image ========"
 	(
-		bzcat /mnt/usb/sdimage.dd.bz2 | dd bs=4M of=/dev/mmcblk0
+		if [ -e /mnt/usb/sdimage.dd.bz2 ] ; then
+		  bzcat /mnt/usb/sdimage.dd.bz2 | dd bs=4M of=/dev/mmcblk0
+		  BYTES="$(bzcat /mnt/usb/sdimage.dd.bz2  | wc -c)"
+		else
+		  xzcat /mnt/usb/sdimage.dd.xz | dd bs=4M of=/dev/mmcblk0
+		  BYTES="$(xzcat /mnt/usb/sdimage.dd.xz | wc -c)"
+		fi
+
 		if [ -e /mnt/usb/sdimage.dd.md5 ]; then
-			BYTES="$(bzcat /mnt/usb/sdimage.dd.bz2  | wc -c)"
 			EXPECTED="$(cat /mnt/usb/sdimage.dd.md5 | cut -f 1 -d ' ')"
 			ACTUAL=$(dd if=/dev/mmcblk0 bs=4M | dd bs=1 count=$BYTES | md5sum)
 			if [ "$ACTUAL" != "$EXPECTED" ]; then
@@ -75,7 +89,7 @@ elif [ -e /mnt/usb/sdimage.dd.bz2 ]; then
 fi
 
 ### EMMC ###
-if [ -e /mnt/usb/emmcimage.tar.bz2 ]; then
+if [ -e /mnt/usb/emmcimage.tar.bz2 -o -e /mnt/usb/emmcimage.tar.xz ]; then
 	echo "======= Writing eMMC card filesystem ========"
 	(
 
@@ -101,9 +115,17 @@ EOF
 		if [ $? != 0 ]; then
 			echo "mount mmcblk1" >> /tmp/failed
 		fi
-		bzcat /mnt/usb/emmcimage.tar.bz2 | tar -x -C /mnt/emmc
-		if [ $? != 0 ]; then
-			echo "tar mmcblk1" >> /tmp/failed
+
+		if [ -e /mnt/usb/emmcimage.tar.bz2 ] ; then
+			bzcat /mnt/usb/emmcimage.tar.bz2 | tar -x -C /mnt/emmc
+			if [ $? != 0 ]; then
+				echo "tar mmcblk1" >> /tmp/failed
+			fi
+		else # It is an xz image
+			xzcat /mnt/usb/emmcimage.tar.xz | tar -x -C /mnt/emmc
+			if [ $? != 0 ]; then
+				echo "tar mmcblk1" >> /tmp/failed
+			fi
 		fi
 		sync
 
@@ -125,12 +147,18 @@ EOF
 
 		umount /mnt/emmc/
 	) > /tmp/logs/emmc-writefs 2>&1 &
-elif [ -e /mnt/usb/emmcimage.dd.bz2 ]; then
+elif [ -e /mnt/usb/emmcimage.dd.bz2 -o -e /mnt/usb/emmcimage.dd.xz ]; then
 	echo "======= Writing eMMC disk image ========"
 	(
-		bzcat /mnt/usb/emmcimage.dd.bz2 | dd bs=4M of=/dev/mmcblk1
+		if [ -e /mnt/usb/emmcimage.dd.bz2 ] ; then
+		  bzcat /mnt/usb/emmcimage.dd.bz2 | dd bs=4M of=/dev/mmcblk1
+		  BYTES="$(bzcat /mnt/usb/emmcimage.dd.bz2  | wc -c)"
+		else
+		  xzcat /mnt/usb/emmcimage.dd.xz | dd bs=4M of=/dev/mmcblk1
+		  BYTES="$(xzcat /mnt/usb/emmcimage.dd.xz  | wc -c)"
+		fi
+
 		if [ -e /mnt/usb/emmcimage.dd.md5 ]; then
-			BYTES="$(bzcat /mnt/usb/emmcimage.dd.bz2  | wc -c)"
 			EXPECTED="$(cat /mnt/usb/emmcimage.dd.md5 | cut -f 1 -d ' ')"
 			ACTUAL=$(dd if=/dev/mmcblk1 bs=4M | dd bs=1 count=$BYTES | md5sum)
 			if [ "$ACTUAL" != "$EXPECTED" ]; then

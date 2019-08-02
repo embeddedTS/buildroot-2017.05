@@ -36,8 +36,9 @@ cp output/images/rootfs.cpio.uboot ${TEMPDIR}/boot/
 cp output/images/*.dtb ${TEMPDIR}/boot/
 cp output/images/*Image ${TEMPDIR}/boot/
 cp blast${MODEL}.sh ${TEMPDIR}/blast.sh
-cp tsinit${MODEL}.scr ${TEMPDIR}/tsinit.scr
+cp tsinit${MODEL}.scr ${TEMPDIR}/tsinit.source
 chmod a+x ${TEMPDIR}/blast.sh
 mkimage -T script -C none -A arm -n 'usb boot' -d tsinit${MODEL}.scr ${TEMPDIR}/tsinit.ub
+mkimage -T script -C none -A arm -n 'usb boot' -d tsinit${MODEL}.scr ${TEMPDIR}/tsinit.scr
 umount ${TEMPDIR}
 sync
